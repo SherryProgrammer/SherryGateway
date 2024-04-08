@@ -3,8 +3,8 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	"github.com/e421083458/gin_scaffold/public"
-	"github.com/e421083458/golang_common/lib"
+	"github.com/SherryProgrammer/SherryGateway/public"
+	"github.com/SherryProgrammer/go_evnconfig/lib"
 	"github.com/gin-gonic/gin"
 	"runtime/debug"
 )

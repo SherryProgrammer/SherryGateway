@@ -1,14 +1,15 @@
 package router
 
 import (
-	"github.com/e421083458/gin_scaffold/controller"
-	"github.com/e421083458/gin_scaffold/middleware"
-	"github.com/e421083458/golang_common/lib"
+	"github.com/SherryProgrammer/SherryGateway/controller"
+	"github.com/SherryProgrammer/SherryGateway/docs"
+	"github.com/SherryProgrammer/SherryGateway/middleware"
+	"github.com/SherryProgrammer/go_evnconfig/lib"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/e421083458/gin_scaffold/docs"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"log"
 )
 
 // @title Swagger Example API
@@ -74,34 +75,59 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	})
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	//demo
-	v1 := router.Group("/demo")
-	v1.Use(middleware.RecoveryMiddleware(), middleware.RequestLog(), middleware.IPAuthMiddleware(), middleware.TranslationMiddleware())
-	{
-		controller.DemoRegister(v1)
+	//设置中间件 不需要session认证 但需要session设置
+	store, err := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
+	if err != nil {
+		log.Fatalf("sessions.NewRedisStore err:%v", err)
 	}
-
-	//非登陆接口
-	store := sessions.NewCookieStore([]byte("secret"))
-	apiNormalGroup := router.Group("/api")
-	apiNormalGroup.Use(sessions.Sessions("mysession", store),
+	//路由
+	adminLoginRouter := router.Group("/admin_login")
+	adminLoginRouter.Use(
+		sessions.Sessions("mysession", store),
 		middleware.RecoveryMiddleware(),
 		middleware.RequestLog(),
-		middleware.TranslationMiddleware())
-	{
-		controller.ApiRegister(apiNormalGroup)
+		middleware.TranslationMiddleware()) //中间件
+	{ //注册
+		controller.AdminLoginRegister(adminLoginRouter)
 	}
 
-	//登陆接口
-	apiAuthGroup := router.Group("/api")
-	apiAuthGroup.Use(
+	//路由
+	adminRouter := router.Group("/admin")
+	//设置中间件 不需要session认证 但需要session设置
+
+	adminRouter.Use(
 		sessions.Sessions("mysession", store),
 		middleware.RecoveryMiddleware(),
 		middleware.RequestLog(),
 		middleware.SessionAuthMiddleware(),
-		middleware.TranslationMiddleware())
-	{
-		controller.ApiLoginRegister(apiAuthGroup)
+		middleware.TranslationMiddleware()) //中间件
+	{ //注册
+		controller.AdminRegister(adminRouter)
 	}
+
+	serviceRouter := router.Group("/service")
+	//设置中间件 不需要session认证 但需要session设置
+
+	serviceRouter.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.SessionAuthMiddleware(),
+		middleware.TranslationMiddleware()) //中间件
+	{ //注册
+		controller.ServiceRegister(serviceRouter)
+	}
+
+	//store := sessions.NewCookieStore([]byte("secret"))
+	//apiNormalGroup := router.Group("/api")
+	//apiController := &controller.Api{}
+	//apiNormalGroup.Use(
+	//	sessions.Sessions("mysession", store),
+	//	middleware.RecoveryMiddleware(),
+	//	middleware.RequestLog(),
+	//	middleware.TranslationMiddleware())
+	//apiNormalGroup.POST("/login", apiController.Login)
+	//apiNormalGroup.GET("/loginout", apiController.LoginOut)
+
 	return router
 }
