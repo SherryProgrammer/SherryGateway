@@ -21,34 +21,41 @@ func (t *ServiceInfo) TableName() string {
 	return "gateway_service_info"
 }
 func (t *ServiceInfo) ServiceDetail(c *gin.Context, tx *gorm.DB, search *ServiceInfo) (*ServiceDetail, error) {
-	httpRule := &HttpRule{ServiceID:search.ID}
-	httpRule,err: = httpRule.Find(c, tx, httpRule)
-	if err!=nil&&err!=gorm.ErrRecordNotFound {
-		return nil,err
+	if search.ServiceName == "" {
+		info, err := t.Find(c, tx, search)
+		if err != nil {
+			return nil, err
+		}
+		search = info
+	}
+	httpRule := &HttpRule{ServiceID: search.ID}
+	httpRule, err := httpRule.Find(c, tx, httpRule)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
 	}
 
-	tcpRule := &TcpRule{ServiceID:search.ID}
-	tcpRule,err = tcpRule.Find(c, tx, tcpRule)
-	if err!=nil&&err!=gorm.ErrRecordNotFound {
-		return nil,err
+	tcpRule := &TcpRule{ServiceID: search.ID}
+	tcpRule, err = tcpRule.Find(c, tx, tcpRule)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
 	}
 
-	grpcRule := &GrpcRule{ServiceID:search.ID}
-	grpcRule,err = grpcRule.Find(c, tx, grpcRule)
-	if err!=nil&&err!=gorm.ErrRecordNotFound {
-		return nil,err
+	grpcRule := &GrpcRule{ServiceID: search.ID}
+	grpcRule, err = grpcRule.Find(c, tx, grpcRule)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
 	}
 
-	accessControl := &AccessControl{ServiceID:search.ID}
-	accessControl,err = accessControl.Find(c, tx, accessControl)
-	if err!=nil&&err!=gorm.ErrRecordNotFound {
-		return nil,err
+	accessControl := &AccessControl{ServiceID: search.ID}
+	accessControl, err = accessControl.Find(c, tx, accessControl)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
 	}
 
-	loadBalance := &LoadBalance{ServiceID:search.ID}
-	loadBalance,err = accessControl.Find(c, tx, loadBalance)
-	if err!=nil&&err!=gorm.ErrRecordNotFound {
-		return nil,err
+	loadBalance := &LoadBalance{ServiceID: search.ID}
+	loadBalance, err = loadBalance.Find(c, tx, loadBalance)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
 	}
 
 	detail := &ServiceDetail{
@@ -60,8 +67,6 @@ func (t *ServiceInfo) ServiceDetail(c *gin.Context, tx *gorm.DB, search *Service
 		AccessControl: accessControl,
 	}
 	return detail, nil
-
-
 
 }
 func (t *ServiceInfo) PageList(c *gin.Context, tx *gorm.DB, param *dto.ServiceListInput) ([]ServiceInfo, int64, error) {
@@ -83,8 +88,18 @@ func (t *ServiceInfo) PageList(c *gin.Context, tx *gorm.DB, param *dto.ServiceLi
 
 }
 
-func (t *ServiceInfo) Find(c *gin.Context, tx *gorm.DB, search *Admin) (*Admin, error) {
-	out := &Admin{}
+func (t *ServiceInfo) GroupByLoadType(c *gin.Context, tx *gorm.DB) ([]dto.DashServiceStatItemOutput, error) {
+	list := []dto.DashServiceStatItemOutput{}
+	query := tx.WithContext(c)
+	if err := query.Table(t.TableName()).Where("is_delete=0").Select("load_type as num, count(*) as num").Group("load_type").Scan(&list).Error; err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}
+
+func (t *ServiceInfo) Find(c *gin.Context, tx *gorm.DB, search *ServiceInfo) (*ServiceInfo, error) {
+	out := &ServiceInfo{}
 	//不用那样封装
 	err := tx.WithContext(c).Where(search).Find(out).Error
 	if err != nil {

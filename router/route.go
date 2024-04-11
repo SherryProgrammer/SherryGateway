@@ -118,6 +118,28 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 		controller.ServiceRegister(serviceRouter)
 	}
 
+	appRouter := router.Group("/app")
+	appRouter.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.SessionAuthMiddleware(),
+		middleware.TranslationMiddleware())
+	{
+		controller.APPRegister(appRouter)
+	}
+
+	dashRouter := router.Group("/dashboard")
+	dashRouter.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.SessionAuthMiddleware(),
+		middleware.TranslationMiddleware())
+	{
+		controller.DashboardRegister(dashRouter)
+	}
+
 	//store := sessions.NewCookieStore([]byte("secret"))
 	//apiNormalGroup := router.Group("/api")
 	//apiController := &controller.Api{}
