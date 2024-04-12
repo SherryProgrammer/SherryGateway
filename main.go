@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"github.com/SherryProgrammer/SherryGateway/http_proxy_router"
 	"github.com/SherryProgrammer/SherryGateway/router"
 	"github.com/SherryProgrammer/go_evnconfig/lib"
 	"log"
@@ -10,23 +12,65 @@ import (
 	"syscall"
 )
 
+// endpoint dashboard 后台管理 server 代理服务器
+// config ./conf/prod/ 对应配置文件夹
+var (
+	endpoint = flag.String("endpoint", "server", "input endpoint dashboard or server")
+	config   = flag.String("conf", "./conf/dev/", "input config file like ./conf/dev/")
+)
+
 func main() {
-	//如果configPath为空 从命令行中`-congig-./conf/prod/`中读取
-	path := lib.GetConfPath("base") // 获取基础模块的配置路径。
-	fmt.Println("path", path)       // 打印配置路径。
-	// 使用配置路径和模块名称初始化模块。
-	err := lib.InitModule("./conf/dev/", []string{"base", "mysql", "redis"}) //请求链路日志打印，涵盖mysql/redis/request
-	if err != nil {
-		log.Fatalf("%v", err) // 如果初始化失败，则退出程序。
+	flag.Parsed()
+	if *endpoint == "" {
+		flag.Usage()
+		os.Exit(1)
 	}
-	defer lib.Destroy() // 延迟销毁已初始化的模块。
-	//fmt.Println("111")
-	router.HttpServerRun() // 启动 HTTP 服务器。
-	//fmt.Println("222")
+	if *config == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
 
-	quit := make(chan os.Signal)                                                           // 创建通道以接收操作系统信号。
-	signal.Notify(quit, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM) // 注册信号到 quit 通道。
-	<-quit                                                                                 // 等待接收到信号。
+	if *endpoint == "dashboard" {
+		//如果configPath为空 从命令行中`-congig-./conf/prod/`中读取
+		//path := lib.GetConfPath("base") // 获取基础模块的配置路径。
+		//fmt.Println("path", path)       // 打印配置路径。
+		// 使用配置路径和模块名称前缀初始化模块。
+		//"./conf/dev/"
+		err := lib.InitModule(*config, []string{"base", "mysql", "redis"}) //请求链路日志打印，涵盖mysql/redis/request
+		if err != nil {
+			log.Fatalf("%v", err) // 如果初始化失败，则退出程序。
+		}
+		defer lib.Destroy() // 退出
+		//fmt.Println("111")
+		router.HttpServerRun() // 启动 HTTP 服务器。
+		//fmt.Println("222")
+		fmt.Println("start server")
+		quit := make(chan os.Signal)                                                           // 创建通道以接收操作系统信号。 优雅停止模板
+		signal.Notify(quit, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM) // ctrl+c kill
+		<-quit                                                                                 // 等待接收到信号。
+		router.HttpServerStop()                                                                // 停止 HTTP 服务器。
+	} else {
+		err := lib.InitModule(*config, []string{"base", "mysql", "redis"}) //请求链路日志打印，涵盖mysql/redis/request
+		if err != nil {
+			log.Fatalf("%v", err) // 如果初始化失败，则退出程序。
+		}
+		defer lib.Destroy() // 退出
+		go func() {         //携程
+			http_proxy_router.HttpServerRun()
+		}()
+		go func() { //携程
+			http_proxy_router.HttpsServerRun()
+		}()
+		fmt.Println("start server")
+		//todo
 
-	router.HttpServerStop() // 停止 HTTP 服务器。
+		quit := make(chan os.Signal)                                                           // 创建通道以接收操作系统信号。 优雅停止模板
+		signal.Notify(quit, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM) // ctrl+c kill
+		<-quit                                                                                 // 等待接收到信号。
+		router.HttpServerStop()                                                                // 停止 HTTP 服务器。
+		//http_proxy_router.HttpServerStop()
+		http_proxy_router.HttpsServerStop()
+
+	}
+
 }

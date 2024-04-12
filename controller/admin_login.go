@@ -80,7 +80,7 @@ func (adminlogin *AdminLoginController) AdminLogin(c *gin.Context) {
 }
 
 // AdminLoginOut godoc
-// @Summary 管理员退出
+// @Summary 管理员退出AdminLoginOut
 // @Description 管理员退出
 // @Tags 管理员接口
 // @ID /admin_login/logout

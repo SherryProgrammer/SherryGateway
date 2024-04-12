@@ -639,7 +639,7 @@ paths:
                 data:
                   type: string
               type: object
-      summary: 管理员退出
+      summary: 管理员退出AdminLoginOut
       tags:
       - 管理员接口
   /app/app_add:

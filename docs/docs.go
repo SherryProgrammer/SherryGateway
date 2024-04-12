@@ -167,7 +167,7 @@ var doc = `{
                 "tags": [
                     "管理员接口"
                 ],
-                "summary": "管理员退出",
+                "summary": "管理员退出AdminLoginOut",
                 "operationId": "/admin_login/logout",
                 "responses": {
                     "200": {
