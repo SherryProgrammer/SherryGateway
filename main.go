@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/SherryProgrammer/SherryGateway/dao"
 	"github.com/SherryProgrammer/SherryGateway/http_proxy_router"
 	"github.com/SherryProgrammer/SherryGateway/router"
 	"github.com/SherryProgrammer/go_evnconfig/lib"
@@ -15,12 +16,13 @@ import (
 // endpoint dashboard 后台管理 server 代理服务器
 // config ./conf/prod/ 对应配置文件夹
 var (
-	endpoint = flag.String("endpoint", "server", "input endpoint dashboard or server")
-	config   = flag.String("conf", "./conf/dev/", "input config file like ./conf/dev/")
+	endpoint = flag.String("endpoint", "", "input endpoint dashboard or server")
+	config   = flag.String("conf", "", "input config file like ./conf/dev/")
 )
 
 func main() {
-	flag.Parsed()
+	flag.Parse()
+
 	if *endpoint == "" {
 		flag.Usage()
 		os.Exit(1)
@@ -54,8 +56,9 @@ func main() {
 		if err != nil {
 			log.Fatalf("%v", err) // 如果初始化失败，则退出程序。
 		}
-		defer lib.Destroy() // 退出
-		go func() {         //携程
+		defer lib.Destroy()                  // 退出
+		dao.ServiceManagerHandler.LoadOnce() //启动时加载服务列表
+		go func() {                          //携程
 			http_proxy_router.HttpServerRun()
 		}()
 		go func() { //携程
@@ -68,7 +71,6 @@ func main() {
 		signal.Notify(quit, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM) // ctrl+c kill
 		<-quit                                                                                 // 等待接收到信号。
 		router.HttpServerStop()                                                                // 停止 HTTP 服务器。
-		//http_proxy_router.HttpServerStop()
 		http_proxy_router.HttpsServerStop()
 
 	}

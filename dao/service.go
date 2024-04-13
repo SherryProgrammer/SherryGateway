@@ -1,10 +1,14 @@
 package dao
 
 import (
+	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/dto"
+	"github.com/SherryProgrammer/SherryGateway/public"
 	"github.com/SherryProgrammer/go_evnconfig/lib"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"net/http/httptest"
+	"strings"
 	"sync"
 )
 
@@ -44,7 +48,30 @@ func (s *ServiceManager) HTTPAccessMode(c *gin.Context) (*ServiceDetail, error) 
 	//1,前缀匹配/abc ==> service.rule
 	//2,前缀匹配 www.test.com ==> service.rule
 
-	return nil, nil
+	//host c.Request.host
+	//path c.Request.URL.Path
+
+	host := c.Request.Host //www.test.com:8080
+	host = host[0:strings.Index(host, ":")]
+	fmt.Println("host", host)
+	path := c.Request.URL.Path // /abc/get
+	//matchService:=ServiceDetail{}
+	for _, serviceItem := range s.ServiceSlice {
+		if serviceItem.Info.LoadType != public.LoadTypeHTTP {
+			continue
+		}
+		if serviceItem.HTTPRule.RuleType == public.HTTPRuleTypeDomain { //domain设置
+			if serviceItem.HTTPRule.Rule == host {
+				return serviceItem, nil
+			}
+		}
+		if serviceItem.HTTPRule.RuleType == public.HTTPRuleTypePrefixURL { //域名前缀设置
+			if strings.HasPrefix(path, serviceItem.HTTPRule.Rule) {
+				return serviceItem, nil
+			}
+		}
+	}
+	return nil, errors.New("not matched service")
 }
 
 func (s *ServiceManager) LoadOnce() error {
@@ -67,7 +94,8 @@ func (s *ServiceManager) LoadOnce() error {
 		s.Locker.Lock()
 		defer s.Locker.Unlock()
 		for _, listItem := range list {
-			serviceDetail, err := listItem.ServiceDetail(c, tx, &listItem)
+			tmpItem := listItem
+			serviceDetail, err := tmpItem.ServiceDetail(c, tx, &listItem)
 			if err != nil {
 				s.err = err
 				return

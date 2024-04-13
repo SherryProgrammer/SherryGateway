@@ -1,6 +1,7 @@
 package http_proxy_router
 
 import (
+	"github.com/SherryProgrammer/SherryGateway/http_proxy_middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,5 +13,6 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 			"message": "pong",
 		})
 	})
+	router.Use(http_proxy_middleware.HTTPAccessModeMiddleware()) //http接入中间件
 	return router
 }
