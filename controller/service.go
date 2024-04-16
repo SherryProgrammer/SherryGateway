@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"strings"
+	"time"
 )
 
 type ServiceController struct {
@@ -91,6 +92,11 @@ func (service *ServiceController) ServiceList(c *gin.Context) {
 			serviceAddr = fmt.Sprintf("%s:%d", clusterIP, sericeDetail.GRPCRule.Port)
 		}
 		ipList := sericeDetail.LoadBalance.GetIPListByModel()
+		counter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + listItem.ServiceName)
+		if err != nil {
+			middleware.ResponseError(c, 2004, err)
+			return
+		}
 
 		//http后缀接入1.clusterIP+clusterPort+path
 		//http域名接入2.domain
@@ -101,8 +107,8 @@ func (service *ServiceController) ServiceList(c *gin.Context) {
 			ServiceName: listItem.ServiceName,
 			ServiceDesc: listItem.ServiceDesc,
 			ServiceAddr: serviceAddr,
-			Qps:         0,
-			Qpd:         0,
+			Qps:         counter.QPS,
+			Qpd:         counter.TotalCount,
 			TotalNode:   len(ipList),
 		}
 		outlist = append(outlist, outItem)
@@ -133,7 +139,6 @@ func (service *ServiceController) ServiceDelete(c *gin.Context) {
 	}
 	//从数据库中读取adninInfo
 	tx, err := lib.GetGormPool("default")
-
 	if err != nil {
 		middleware.ResponseError(c, 2001, err)
 		return
@@ -148,12 +153,12 @@ func (service *ServiceController) ServiceDelete(c *gin.Context) {
 		middleware.ResponseError(c, 2002, err)
 		return
 	}
-	serviceInfo.IsDelete = 1
-	if err := serviceInfo.Save(c, tx); err != nil {
+	serviceDetail, err := serviceInfo.ServiceDetail(c, tx, serviceInfo)
+	if err != nil {
 		middleware.ResponseError(c, 2003, err)
 		return
 	}
-	middleware.ResponseSuccess(c, "")
+	middleware.ResponseSuccess(c, serviceDetail)
 }
 
 // ServiceStat godoc
@@ -167,32 +172,47 @@ func (service *ServiceController) ServiceDelete(c *gin.Context) {
 // @Success 200 {object} middleware.Response{data=dto.DashServiceStatOutput} "success"
 // @Router /service/service_stat [get]
 func (service *ServiceController) ServiceStat(c *gin.Context) {
+	params := &dto.ServiceDeleteInput{}
+	if err := params.BindValidParam(c); err != nil {
+		middleware.ResponseError(c, 2000, err)
+		return
+	}
+	//从数据库中读取adninInfo
 	tx, err := lib.GetGormPool("default")
 	if err != nil {
 		middleware.ResponseError(c, 2001, err)
 		return
 	}
-	serviceInfo := &dao.ServiceInfo{}
-	list, err := serviceInfo.GroupByLoadType(c, tx)
+	//从db中分页读取基本
+	serviceInfo := &dao.ServiceInfo{ID: params.ID}
+	serviceInfo, err = serviceInfo.Find(c, tx, serviceInfo)
+	serviceDetail, err := serviceInfo.ServiceDetail(c, tx, serviceInfo)
 	if err != nil {
-		middleware.ResponseError(c, 2002, err)
+		middleware.ResponseError(c, 2003, err)
 		return
 	}
-	legend := []string{}
-	for index, item := range list {
-		name, ok := public.LoadTypeMap[item.LoadType]
-		if !ok {
-			middleware.ResponseError(c, 2003, errors.New("load_type not found"))
-			return
-		}
-		list[index].Name = name
-		legend = append(legend, name)
+
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + serviceDetail.Info.ServiceName)
+	if err != nil {
+		middleware.ResponseError(c, 2004, err)
+		return
 	}
-	out := &dto.DashServiceStatOutput{
-		Legend: legend,
-		Data:   list,
+	todayList := []int64{}
+	currentTime := time.Now()
+	for i := 0; i < currentTime.Hour(); i++ {
+		dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		todayList = append(todayList, hourData)
 	}
-	middleware.ResponseSuccess(c, out)
+	yesterdayList := []int64{}
+	yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
+	for i := 0; i <= 23; i++ {
+		dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		yesterdayList = append(yesterdayList, hourData)
+	}
+
+	middleware.ResponseSuccess(c, "")
 }
 
 // ServiceAddHTTP godoc
