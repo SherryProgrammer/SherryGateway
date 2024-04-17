@@ -4,6 +4,7 @@ import (
 	"github.com/SherryProgrammer/SherryGateway/dao"
 	"github.com/SherryProgrammer/SherryGateway/dto"
 	"github.com/SherryProgrammer/SherryGateway/middleware"
+	"github.com/SherryProgrammer/SherryGateway/public"
 	"github.com/SherryProgrammer/go_evnconfig/lib"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -51,24 +52,22 @@ func (admin *APPController) APPList(c *gin.Context) {
 
 	outputList := []dto.APPListItemOutput{}
 	for _, item := range list {
-		//appCounter, err := public.FlowCounterHandler.GetCounter(public.FlowAppPrefix + item.AppID)
+		appCounter, err := public.FlowCounterHandler.GetCounter(public.FlowAppPrefix + item.AppID)
 		if err != nil {
 			middleware.ResponseError(c, 2003, err)
 			c.Abort()
 			return
 		}
-		//realQps:=0
-		//realQpd:=0
 		outputList = append(outputList, dto.APPListItemOutput{
 			ID:       item.ID,
 			AppID:    item.AppID,
 			Name:     item.Name,
 			Secret:   item.Secret,
 			WhiteIPS: item.WhiteIPS,
-			Qpd:      item.Qpd,
+			Qpd:      appCounter.QPS,
 			Qps:      item.Qps,
-			RealQpd:  0,
-			RealQps:  0,
+			RealQpd:  appCounter.QPS,
+			RealQps:  appCounter.TotalCount,
 		})
 	}
 	output := dto.APPListOutput{

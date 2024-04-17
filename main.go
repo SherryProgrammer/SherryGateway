@@ -58,7 +58,8 @@ func main() {
 		}
 		defer lib.Destroy()                  // 退出
 		dao.ServiceManagerHandler.LoadOnce() //启动时加载服务列表
-		go func() {                          //携程
+		dao.AppManagerHandler.LoadOnce()
+		go func() { //携程
 			http_proxy_router.HttpServerRun()
 		}()
 		go func() { //携程

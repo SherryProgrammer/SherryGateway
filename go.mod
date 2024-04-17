@@ -7,6 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/SherryProgrammer/go_evnconfig v0.0.0-20240407065452-fa2739f8ae28
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/garyburd/redigo v1.6.0
 	github.com/gin-gonic/contrib v0.0.0-20190526021735-7fb7810ed2a0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-playground/locales v0.14.1
@@ -15,6 +16,7 @@ require (
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.8.12
+	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
 	gopkg.in/go-playground/validator.v9 v9.29.0
 	gorm.io/gorm v1.24.2
 )
@@ -26,7 +28,6 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/e421083458/golang_common v1.2.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/garyburd/redigo v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
