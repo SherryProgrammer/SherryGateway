@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"github.com/SherryProgrammer/SherryGateway/public"
 	"github.com/SherryProgrammer/SherryGateway/reverse_proxy/load_balance"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -91,10 +92,9 @@ func (lbr *LoadBalancer) GetLoadBalancer(service *ServiceDetail) (load_balance.L
 	if service.HTTPRule.NeedHttps == 1 {
 		schema = "https://"
 	}
-	//prefix := ""
-	//if service.HTTPRule.RuleType == public.HTTPRuleTypePrefixURL {
-	//	prefix = service.HTTPRule.Rule
-	//}
+	if service.Info.LoadType == public.LoadTypeTCP || service.Info.LoadType == public.LoadTypeGRPC {
+		schema = ""
+	}
 	iplist := service.LoadBalance.GetIPListByModel()
 	weightList := service.LoadBalance.GetWeightListByModel()
 	ipConf := map[string]string{}

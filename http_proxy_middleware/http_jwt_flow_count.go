@@ -31,8 +31,6 @@ func HTTPJwtFlowCountMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		//dayServiceCounter, _ := appCounter.GetDayData(time.Now())
-		fmt.Printf("serviceCounter qps:%v,dayCount:%v", appCounter.QPS, appCounter.TotalCount)
 
 		c.Next()
 	}

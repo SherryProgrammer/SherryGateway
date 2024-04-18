@@ -1,53 +1,58 @@
-package http_proxy_middleware
+package tcp_proxy_middleware
 
 import (
 	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/dao"
-	"github.com/SherryProgrammer/SherryGateway/middleware"
 	"github.com/SherryProgrammer/SherryGateway/public"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
+	"strings"
 )
 
 // 匹配接入方式 基于请求信息
-func HTTPFlowLimitMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		serverInterface, ok := c.Get("service")
-		if !ok {
-			middleware.ResponseError(c, 2001, errors.New("service not found"))
+func TCPFlowLimitMiddleware() func(c *TcpSliceRouterContext) {
+	return func(c *TcpSliceRouterContext) {
+		serverInterface := c.Get("service")
+		if serverInterface == nil {
+			c.conn.Write([]byte("get service empty"))
 			c.Abort()
 			return
 		}
 		serviceDetail := serverInterface.(*dao.ServiceDetail)
+
 		if serviceDetail.AccessControl.ServiceFlowLimit != 0 {
 			serviceLimiter, err := public.FlowLimiterHandler.GetLimiter(
 				public.FlowServicePrefix+serviceDetail.Info.ServiceName,
 				float64(serviceDetail.AccessControl.ServiceFlowLimit))
 			if err != nil {
-				middleware.ResponseError(c, 5001, err)
+				c.conn.Write([]byte(err.Error()))
 				c.Abort()
 				return
 			}
 			if !serviceLimiter.Allow() {
-				middleware.ResponseError(c, 5002, errors.New(fmt.Sprintf("service flow limit %v", serviceDetail.AccessControl.ServiceFlowLimit)))
+				c.conn.Write([]byte(err.Error()))
 				c.Abort()
 				return
 			}
+		}
+
+		splits := strings.Split(c.conn.RemoteAddr().String(), ":")
+		clientIP := ""
+		if len(splits) == 2 {
+			clientIP = splits[0]
 		}
 
 		if serviceDetail.AccessControl.ServiceFlowLimit > 0 {
 
 			serviceDetail := serverInterface.(*dao.ServiceDetail)
 			//统计项 1 全站 2 服务 3 租户
-			clientLimiter, err := public.FlowLimiterHandler.GetLimiter(public.FlowServicePrefix+serviceDetail.Info.ServiceName+"_"+c.ClientIP(),
+			clientLimiter, err := public.FlowLimiterHandler.GetLimiter(public.FlowServicePrefix+serviceDetail.Info.ServiceName+"_"+clientIP,
 				float64(serviceDetail.AccessControl.ServiceFlowLimit))
 			if err != nil {
-				middleware.ResponseError(c, 5003, err)
+				c.conn.Write([]byte(err.Error()))
 				c.Abort()
 				return
 			}
 			if !clientLimiter.Allow() {
-				middleware.ResponseError(c, 5002, errors.New(fmt.Sprintf("%v client ip flow limit %v", c.ClientIP(), serviceDetail.AccessControl.ClientIPFlowLimit)))
+				c.conn.Write([]byte(fmt.Sprintf("%v flow limit %v", clientIP, serviceDetail.AccessControl.ClientIPFlowLimit)))
 				c.Abort()
 				return
 			}

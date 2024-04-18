@@ -29,7 +29,8 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 		http_proxy_middleware.HTTPFlowLimitMiddleware(), //统计限流
 
 		http_proxy_middleware.HTTPJwtAuthTokenMiddleware(),
-		http_proxy_middleware.HTTPJwtAuthTokenMiddleware(), //流量统计
+		http_proxy_middleware.HTTPJwtFlowCountMiddleware(), //流量统计
+		http_proxy_middleware.HTTPJwtFlowLimitMiddleware(), //限流
 		http_proxy_middleware.HTTPWhiteListMiddleware(),
 		http_proxy_middleware.HTTPBlackListMiddleware(), //黑白名单
 

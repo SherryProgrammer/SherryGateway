@@ -6,6 +6,7 @@ import (
 	"github.com/SherryProgrammer/SherryGateway/dao"
 	"github.com/SherryProgrammer/SherryGateway/http_proxy_router"
 	"github.com/SherryProgrammer/SherryGateway/router"
+	"github.com/SherryProgrammer/SherryGateway/tcp_proxy_router"
 	"github.com/SherryProgrammer/go_evnconfig/lib"
 	"log"
 	"os"
@@ -65,13 +66,18 @@ func main() {
 		go func() { //携程
 			http_proxy_router.HttpsServerRun()
 		}()
+		go func() { //携程
+			tcp_proxy_router.TcpServerRun()
+		}()
 		fmt.Println("start server")
 		//todo
 
 		quit := make(chan os.Signal)                                                           // 创建通道以接收操作系统信号。 优雅停止模板
 		signal.Notify(quit, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM) // ctrl+c kill
 		<-quit                                                                                 // 等待接收到信号。
-		router.HttpServerStop()                                                                // 停止 HTTP 服务器。
+
+		tcp_proxy_router.TcpServerStop()
+		http_proxy_router.HttpServerStop() // 停止 HTTP 服务器。
 		http_proxy_router.HttpsServerStop()
 
 	}

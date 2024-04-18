@@ -106,3 +106,24 @@ func (s *ServiceManager) LoadOnce() error {
 	})
 	return s.err
 }
+func (s *ServiceManager) GetTcpServiceList(c *gin.Context) []*ServiceDetail {
+	list := []*ServiceDetail{}
+	for _, serverItem := range s.ServiceSlice {
+		tempItem := serverItem
+		if tempItem.Info.LoadType == public.LoadTypeTCP {
+			list = append(list, tempItem)
+		}
+	}
+	return list
+}
+
+func (s *ServiceManager) GetGrpcServiceList(c *gin.Context) []*ServiceDetail {
+	list := []*ServiceDetail{}
+	for _, serverItem := range s.ServiceSlice {
+		tempItem := serverItem
+		if tempItem.Info.LoadType == public.LoadTypeGRPC {
+			list = append(list, tempItem)
+		}
+	}
+	return list
+}

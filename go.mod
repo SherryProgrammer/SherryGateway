@@ -7,6 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/SherryProgrammer/go_evnconfig v0.0.0-20240407065452-fa2739f8ae28
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/garyburd/redigo v1.6.0
 	github.com/gin-gonic/contrib v0.0.0-20190526021735-7fb7810ed2a0
 	github.com/gin-gonic/gin v1.9.0

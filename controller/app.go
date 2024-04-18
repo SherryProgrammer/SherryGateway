@@ -241,40 +241,40 @@ func (admin *APPController) AppStatistics(c *gin.Context) {
 		return
 	}
 
-	//search := &dao.App{
-	//	ID: params.ID,
-	//}
-	//detail, err := search.Find(c, lib.GORMDefaultPool, search)
-	//if err != nil {
-	//	middleware.ResponseError(c, 2002, err)
-	//	return
-	//}
-	//
+	search := &dao.App{
+		ID: params.ID,
+	}
+	detail, err := search.Find(c, lib.GORMDefaultPool, search)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		return
+	}
+
 	////今日流量全天小时级访问统计
-	//todayStat := []int64{}
-	////counter, err := public.FlowCounterHandler.GetCounter(public.FlowAppPrefix + detail.AppID)
-	//if err != nil {
-	//	middleware.ResponseError(c, 2002, err)
-	//	c.Abort()
-	//	return
-	//}
-	//currentTime := time.Now()
+	todayStat := []int64{}
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowAppPrefix + detail.AppID)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		c.Abort()
+		return
+	}
+	currentTime := time.Now()
 	for i := 0; i <= time.Now().In(lib.TimeLocation).Hour(); i++ {
-		//dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
-		//hourData, _ := counter.GetHourData(dateTime)
-		//todayStat = append(todayStat, hourData)
+		dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		todayStat = append(todayStat, hourData)
 	}
 
 	//昨日流量全天小时级访问统计
 	yesterdayStat := []int64{}
-	//yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
+	yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
 	for i := 0; i <= 23; i++ {
-		//dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
-		//hourData, _ := counter.GetHourData(dateTime)
-		//yesterdayStat = append(yesterdayStat, hourData)
+		dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		yesterdayStat = append(yesterdayStat, hourData)
 	}
 	stat := dto.StatisticsOutput{
-		//Today:     todayStat,
+		Today:     todayStat,
 		Yesterday: yesterdayStat,
 	}
 	middleware.ResponseSuccess(c, stat)
