@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/dao"
+	"github.com/SherryProgrammer/SherryGateway/grpc_proxy_router"
 	"github.com/SherryProgrammer/SherryGateway/http_proxy_router"
 	"github.com/SherryProgrammer/SherryGateway/router"
 	"github.com/SherryProgrammer/SherryGateway/tcp_proxy_router"
@@ -69,6 +70,9 @@ func main() {
 		go func() { //携程
 			tcp_proxy_router.TcpServerRun()
 		}()
+		go func() { //携程
+			grpc_proxy_router.GrpcServerRun()
+		}()
 		fmt.Println("start server")
 		//todo
 
@@ -77,6 +81,7 @@ func main() {
 		<-quit                                                                                 // 等待接收到信号。
 
 		tcp_proxy_router.TcpServerStop()
+		grpc_proxy_router.GrpcServerStop()
 		http_proxy_router.HttpServerStop() // 停止 HTTP 服务器。
 		http_proxy_router.HttpsServerStop()
 

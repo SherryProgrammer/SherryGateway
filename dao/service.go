@@ -117,7 +117,7 @@ func (s *ServiceManager) GetTcpServiceList(c *gin.Context) []*ServiceDetail {
 	return list
 }
 
-func (s *ServiceManager) GetGrpcServiceList(c *gin.Context) []*ServiceDetail {
+func (s *ServiceManager) GetGrpcServiceList() []*ServiceDetail {
 	list := []*ServiceDetail{}
 	for _, serverItem := range s.ServiceSlice {
 		tempItem := serverItem

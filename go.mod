@@ -6,6 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/SherryProgrammer/go_evnconfig v0.0.0-20240407065452-fa2739f8ae28
+	github.com/SherryProgrammer/grpc-proxy v0.0.0-20200517051833-a2269fff9d7f
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/garyburd/redigo v1.6.0
@@ -18,6 +19,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.8.12
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
+	google.golang.org/grpc v1.50.1
 	gopkg.in/go-playground/validator.v9 v9.29.0
 	gorm.io/gorm v1.24.2
 )
@@ -37,6 +39,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
@@ -54,6 +57,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mwitkow/grpc-proxy v0.0.0-20230212185441-f345521cb9c9 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
@@ -70,6 +74,7 @@ require (
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
+	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -79,3 +84,6 @@ require (
 )
 
 //replace github.com/gin-contrib/sse v0.1.0 => github.com/SherryProgrammer/sse
+
+//replace ./github.com/SherryProgrammer/grpc-proxy => ./github.com/mwitkow/grpc-proxy
+//replace github.com/SherryProgrammer/grpc-proxy => github.com/SherryProgrammer/grpc-proxy v0.1
