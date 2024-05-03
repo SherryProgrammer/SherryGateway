@@ -52,6 +52,7 @@ func GrpcServerRun() {
 				Addr:   addr,
 				Server: s,
 			})
+
 			log.Printf(" [INFO] grpc_proxy_run %v\n", addr)
 			if err := s.Serve(lis); err != nil {
 				log.Fatalf(" [INFO] grpc_proxy_run %v err:%v\n", addr, err)
