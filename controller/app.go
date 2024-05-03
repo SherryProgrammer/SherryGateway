@@ -64,10 +64,10 @@ func (admin *APPController) APPList(c *gin.Context) {
 			Name:     item.Name,
 			Secret:   item.Secret,
 			WhiteIPS: item.WhiteIPS,
-			Qpd:      appCounter.QPS,
+			Qpd:      item.Qpd,
 			Qps:      item.Qps,
-			RealQpd:  appCounter.QPS,
-			RealQps:  appCounter.TotalCount,
+			RealQpd:  appCounter.TotalCount,
+			RealQps:  appCounter.QPS,
 		})
 	}
 	output := dto.APPListOutput{
@@ -209,7 +209,7 @@ func (admin *APPController) AppUpdate(c *gin.Context) {
 		return
 	}
 	if params.Secret == "" {
-		//params.Secret = public.MD5(params.AppID)
+		params.Secret = public.MD5(params.AppID)
 	}
 	info.Name = params.Name
 	info.Secret = params.Secret

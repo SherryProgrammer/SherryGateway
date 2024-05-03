@@ -514,7 +514,7 @@ var doc = `{
                 }
             }
         },
-        "/dashboard/panel_group_date": {
+        "/dashboard/panel_group_data": {
             "get": {
                 "description": "指标统计",
                 "consumes": [
@@ -527,7 +527,7 @@ var doc = `{
                     "首页大盘"
                 ],
                 "summary": "指标统计",
-                "operationId": "/dashboard/panel_group_date",
+                "operationId": "/dashboard/panel_group_data",
                 "responses": {
                     "200": {
                         "description": "success",

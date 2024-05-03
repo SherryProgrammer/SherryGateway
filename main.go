@@ -18,8 +18,8 @@ import (
 // endpoint dashboard 后台管理 server 代理服务器
 // config ./conf/prod/ 对应配置文件夹
 var (
-	endpoint = flag.String("endpoint", "", "input endpoint dashboard or server")
-	config   = flag.String("conf", "", "input config file like ./conf/dev/")
+	endpoint = flag.String("endpoint", "dashboard", "input endpoint dashboard or server")
+	config   = flag.String("conf", "./conf/dev/", "input config file like ./conf/dev/")
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 	}
 
 	if *endpoint == "dashboard" {
-		//如果configPath为空 从命令行中`-congig-./conf/prod/`中读取
+		//如果configPath为空 从命令行中`-config-./conf/prod/`中读取
 		//path := lib.GetConfPath("base") // 获取基础模块的配置路径。
 		//fmt.Println("path", path)       // 打印配置路径。
 		// 使用配置路径和模块名称前缀初始化模块。

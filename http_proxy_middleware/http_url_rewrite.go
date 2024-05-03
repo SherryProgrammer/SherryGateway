@@ -29,13 +29,13 @@ func HTTPUrlRewriteMiddleware() gin.HandlerFunc {
 			}
 			regexp, err := regexp.Compile(items[0])
 			if err != nil {
-				fmt.Println("regexp.Compile err")
+				//fmt.Println("regexp.Compile err")
 				continue
 			}
-			fmt.Println("before rewrite", c.Request.URL.Path)
+			//fmt.Println("before rewrite", c.Request.URL.Path)
 			replacePath := regexp.ReplaceAll([]byte(c.Request.URL.Path), []byte(items[1]))
 			c.Request.URL.Path = string(replacePath)
-			fmt.Println("after rewrite")
+			//fmt.Println("after rewrite")
 		}
 
 		c.Next()

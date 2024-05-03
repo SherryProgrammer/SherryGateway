@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-type MyCustomClaims struct {
-	Foo string `json:"foo"` //自定义字段
-	jwt.StandardClaims
-}
-
 func JwtDecode(tokenString string) (*jwt.StandardClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(JwtSignKey), nil

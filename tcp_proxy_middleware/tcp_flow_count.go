@@ -1,10 +1,8 @@
 package tcp_proxy_middleware
 
 import (
-	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/dao"
 	"github.com/SherryProgrammer/SherryGateway/public"
-	"time"
 )
 
 // 匹配接入方式 基于请求信息
@@ -25,8 +23,8 @@ func TCPFlowCountMiddleware() func(c *TcpSliceRouterContext) {
 			return
 		}
 		totalCounter.Increase()
-		dayCount, _ := totalCounter.GetDayData(time.Now())
-		fmt.Printf("totalCounter qps:%v,dayCount:%v", totalCounter.QPS, dayCount)
+		//dayCount, _ := totalCounter.GetDayData(time.Now())
+		//fmt.Printf("totalCounter qps:%v,dayCount:%v", totalCounter.QPS, dayCount)
 
 		serviceCounter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + serviceDetail.Info.ServiceName)
 		if err != nil {
@@ -35,8 +33,8 @@ func TCPFlowCountMiddleware() func(c *TcpSliceRouterContext) {
 			return
 		}
 		serviceCounter.Increase()
-		dayServiceCounter, _ := serviceCounter.GetDayData(time.Now())
-		fmt.Printf("serviceCounter qps:%v,dayCount:%v", totalCounter.QPS, dayServiceCounter)
+		//dayServiceCounter, _ := serviceCounter.GetDayData(time.Now())
+		//fmt.Printf("serviceCounter qps:%v,dayCount:%v", totalCounter.QPS, dayServiceCounter)
 
 		c.Next()
 	}

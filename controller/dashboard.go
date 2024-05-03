@@ -16,7 +16,7 @@ type DashboardController struct {
 
 func DashboardRegister(group *gin.RouterGroup) {
 	service := &DashboardController{}
-	group.GET("/panel_group_date", service.PanelGroupDate)
+	group.GET("/panel_group_data", service.PanelGroupDate)
 	group.GET("/flow_stat", service.FlowStat)
 	group.GET("/service_stat", service.ServiceStat)
 
@@ -26,11 +26,11 @@ func DashboardRegister(group *gin.RouterGroup) {
 // @Summary 指标统计
 // @Description 指标统计
 // @Tags 首页大盘
-// @ID /dashboard/panel_group_date
+// @ID /dashboard/panel_group_data
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} middleware.Response{data=dto.PanelGroupDataOutput} "success"
-// @Router /dashboard/panel_group_date [get]
+// @Router /dashboard/panel_group_data [get]
 func (service *DashboardController) PanelGroupDate(c *gin.Context) {
 
 	tx, err := lib.GetGormPool("default")
@@ -50,12 +50,17 @@ func (service *DashboardController) PanelGroupDate(c *gin.Context) {
 		middleware.ResponseError(c, 2002, err)
 		return
 	}
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowTotal)
+	if err != nil {
+		middleware.ResponseError(c, 2003, err)
+		return
+	}
 
 	out := &dto.PanelGroupDataOutput{
 		ServiceNum:      serviceNum,
 		AppNum:          appeNum,
-		TodayRequestNum: 0,
-		CurrentQPS:      0,
+		TodayRequestNum: counter.TotalCount,
+		CurrentQPS:      counter.QPS,
 	} //返回结构体
 	middleware.ResponseSuccess(c, out)
 }
@@ -112,20 +117,28 @@ func (service *DashboardController) ServiceStat(c *gin.Context) {
 // @Success 200 {object} middleware.Response{data=dto.ServiceStatOutput} "success"
 // @Router /dashboard/flow_stat [get]
 func (service *DashboardController) FlowStat(c *gin.Context) {
-	params := &dto.ServiceDeleteInput{}
-	if err := params.BindValidParam(c); err != nil {
-		middleware.ResponseError(c, 2000, err)
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowTotal)
+	if err != nil {
+		middleware.ResponseError(c, 2001, err)
 		return
 	}
 
 	todayList := []int64{}
-	for i := 0; i < time.Now().Hour(); i++ {
-		todayList = append(todayList, 0)
+	currentTime := time.Now()
+	for i := 0; i <= currentTime.Hour(); i++ {
+		dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		todayList = append(todayList, hourData)
 	}
 	yesterdayList := []int64{}
+	yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
 	for i := 0; i <= 23; i++ {
-		yesterdayList = append(yesterdayList, 0)
+		dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		yesterdayList = append(yesterdayList, hourData)
 	}
-
-	middleware.ResponseSuccess(c, "")
+	middleware.ResponseSuccess(c, &dto.ServiceStatOutput{
+		Today:     todayList,
+		Yesterday: yesterdayList,
+	})
 }

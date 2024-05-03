@@ -2,6 +2,7 @@ package tcp_proxy_router
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/dao"
 	"github.com/SherryProgrammer/SherryGateway/reverse_proxy"
@@ -22,10 +23,12 @@ func (t *tcpHandler) ServeTCP(ctx context.Context, src net.Conn) {
 
 func TcpServerRun() {
 
-	serviceList := dao.ServiceManagerHandler.ServiceSlice
+	serviceList := dao.ServiceManagerHandler.GetTcpServiceList()
 	for _, serviceItem := range serviceList {
 		tempItem := serviceItem
 		//log.Printf(" [INFO] tcp_proxy_run:%s\n", tempItem.TCPRule.Port)
+		marshal, _ := json.Marshal(tempItem)
+		fmt.Println(string(marshal))
 
 		go func(serviceDetail *dao.ServiceDetail) {
 			addr := fmt.Sprintf("%d", serviceDetail.TCPRule.Port)
@@ -55,7 +58,7 @@ func TcpServerRun() {
 				BaseCtx: baseCtx,
 			}
 			tcpServerList = append(tcpServerList, tcpServer)
-			log.Printf(" [INFO] tcp_proxy_run %v\n", addr)
+			log.Printf(" [INFO] tcp_proxy_run %s\n", addr)
 			if err := tcpServer.ListenAndServe(); err != nil && err != tcp_server.ErrServerClosed {
 				log.Fatalf(" [INFO] tcp_proxy_run &v err:%v\n", addr, err)
 			}

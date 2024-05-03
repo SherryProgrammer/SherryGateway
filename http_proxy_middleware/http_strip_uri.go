@@ -1,7 +1,6 @@
 package http_proxy_middleware
 
 import (
-	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/dao"
 	"github.com/SherryProgrammer/SherryGateway/middleware"
 	"github.com/SherryProgrammer/SherryGateway/public"
@@ -21,7 +20,7 @@ func HTTPStringUriMiddleware() gin.HandlerFunc {
 		serviceDetail := serverInterface.(*dao.ServiceDetail)
 
 		if serviceDetail.HTTPRule.RuleType == public.HTTPRuleTypePrefixURL && serviceDetail.HTTPRule.NeedStripUri == 1 {
-			fmt.Println("Request.URL.Path", c.Request.URL.Path)
+			//fmt.Println("Request.URL.Path", c.Request.URL.Path)
 			c.Request.URL.Path = strings.Replace(c.Request.URL.Path, serviceDetail.HTTPRule.Rule, "", 1)
 		}
 		//http://127.0.0.1:8080/test_http_string/abbb

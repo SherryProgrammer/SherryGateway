@@ -24,6 +24,7 @@ func MD5(s string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+// json的转换
 func Obj2Json(s interface{}) string {
 	bts, _ := json.Marshal(s)
 	return string(bts)

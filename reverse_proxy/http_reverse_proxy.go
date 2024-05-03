@@ -1,18 +1,14 @@
 package reverse_proxy
 
 import (
-	"bytes"
-	"compress/gzip"
 	"fmt"
 	"github.com/SherryProgrammer/SherryGateway/middleware"
 	"github.com/SherryProgrammer/SherryGateway/reverse_proxy/load_balance"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -20,6 +16,7 @@ func NewLoadBalanceReverseProxy(c *gin.Context, lb load_balance.LoadBalance, tra
 	//请求协调者
 	director := func(req *http.Request) {
 		nextAddr, err := lb.Get(req.URL.String())
+		//todo 优化点3
 		if err != nil {
 			log.Fatal("get next addr fail")
 		}
@@ -44,35 +41,40 @@ func NewLoadBalanceReverseProxy(c *gin.Context, lb load_balance.LoadBalance, tra
 
 	//更改内容
 	modifyFunc := func(resp *http.Response) error {
-		//todo 部分章节功能补充2
-		//todo 兼容websocket
 		if strings.Contains(resp.Header.Get("Connection"), "Upgrade") {
 			return nil
 		}
-		var payload []byte
-		var readErr error
 
-		//todo 部分章节功能补充3
-		//todo 兼容gzip压缩
-		if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
-			gr, err := gzip.NewReader(resp.Body)
-			if err != nil {
-				return err
-			}
-			payload, readErr = ioutil.ReadAll(gr)
-			resp.Header.Del("Content-Encoding")
-		} else {
-			payload, readErr = ioutil.ReadAll(resp.Body)
-		}
-		if readErr != nil {
-			return readErr
-		}
-
-		c.Set("status_code", resp.StatusCode)
-		c.Set("payload", payload)
-		resp.Body = ioutil.NopCloser(bytes.NewBuffer(payload))
-		resp.ContentLength = int64(len(payload))
-		resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
+		////todo 优化点2
+		////todo 部分章节功能补充2
+		////todo 兼容websocket
+		//if strings.Contains(resp.Header.Get("Connection"), "Upgrade") {
+		//	return nil
+		//}
+		//var payload []byte
+		//var readErr error
+		//
+		////todo 部分章节功能补充3
+		////todo 兼容gzip压缩
+		//if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
+		//	gr, err := gzip.NewReader(resp.Body)
+		//	if err != nil {
+		//		return err
+		//	}
+		//	payload, readErr = ioutil.ReadAll(gr)
+		//	resp.Header.Del("Content-Encoding")
+		//} else {
+		//	payload, readErr = ioutil.ReadAll(resp.Body)
+		//}
+		//if readErr != nil {
+		//	return readErr
+		//}
+		//
+		//c.Set("status_code", resp.StatusCode)
+		//c.Set("payload", payload)
+		//resp.Body = ioutil.NopCloser(bytes.NewBuffer(payload))
+		//resp.ContentLength = int64(len(payload))
+		//resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
 		return nil
 	}
 

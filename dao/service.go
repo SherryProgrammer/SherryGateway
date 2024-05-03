@@ -38,12 +38,13 @@ type ServiceManager struct {
 func NewServiceManager() *ServiceManager {
 	return &ServiceManager{
 		ServiceMap:   map[string]*ServiceDetail{},
-		ServiceSlice: []*ServiceDetail{},
+		ServiceSlice: []*ServiceDetail{}, //没有锁 更高效
 		Locker:       sync.RWMutex{},
 		init:         sync.Once{},
 	}
 }
 
+// 接入配置
 func (s *ServiceManager) HTTPAccessMode(c *gin.Context) (*ServiceDetail, error) {
 	//1,前缀匹配/abc ==> service.rule
 	//2,前缀匹配 www.test.com ==> service.rule
@@ -91,8 +92,8 @@ func (s *ServiceManager) LoadOnce() error {
 			s.err = err
 			return
 		}
-		s.Locker.Lock()
-		defer s.Locker.Unlock()
+		s.Locker.Lock()         //防止没有找到 内存溢出 map的锁
+		defer s.Locker.Unlock() //退出的时候要关闭
 		for _, listItem := range list {
 			tmpItem := listItem
 			serviceDetail, err := tmpItem.ServiceDetail(c, tx, &listItem)
@@ -106,7 +107,7 @@ func (s *ServiceManager) LoadOnce() error {
 	})
 	return s.err
 }
-func (s *ServiceManager) GetTcpServiceList(c *gin.Context) []*ServiceDetail {
+func (s *ServiceManager) GetTcpServiceList() []*ServiceDetail {
 	list := []*ServiceDetail{}
 	for _, serverItem := range s.ServiceSlice {
 		tempItem := serverItem

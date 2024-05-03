@@ -20,7 +20,7 @@ func HTTPJwtAuthTokenMiddleware() gin.HandlerFunc {
 			return
 		}
 		serviceDetail := serverInterface.(*dao.ServiceDetail)
-		fmt.Println("serverDetail", serviceDetail)
+		//fmt.Println("serverDetail", serviceDetail)
 
 		//decode jwt token
 		//app_id 与app_list 取得appInfo
